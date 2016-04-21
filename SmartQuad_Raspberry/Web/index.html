@@ -1,0 +1,811 @@
+<html>
+    <head>
+        <title>Quadcopter Controller</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+        <script src="js/jquery-2.1.4.min.js"></script>
+        <script src="js/jquery.knob.js"></script>
+        <script src="js/md5.js"></script>
+        <style>
+            body{
+                margin: 0;
+                background-color: #2e8ece; 
+                color: #22313f; 
+                min-width: 920px;
+            }
+            #accelerometer img{
+                position: absolute;
+                top: calc(50% - 250px);
+                left: calc(50% - 250px);
+                transform: rotate(0deg);
+                transition: transform 0.1s linear, top 0.1s linear;
+                z-index: 10;
+            }
+            #circle1{
+                position: absolute;
+                left: 5%;
+                top: 5%;
+            }
+            #circle2{
+                position: absolute;
+                right: 5%;
+                top: 5%;
+            }
+            #circle3{
+                position: absolute;
+                left: 5%;
+                bottom: 5%;
+            }
+            #circle4{
+                position: absolute;
+                right: 5%;
+                bottom: 5%;
+            }
+            #values {
+                position: absolute;
+                width: 500px;
+                left: calc(50% - 250px);
+                top: calc(50% + 250px);
+            }
+            #values table{
+                width: 100%;
+                text-align: center;
+                font-size: 80px;
+                font-weight: bolder;
+                font-family: sans-serif;
+            }
+            td{
+                width: 25%;
+            }
+            #header{
+                position: absolute;
+                top: calc(5%);
+                left: calc(20%);
+                width: 60%;
+            }
+            #status{
+                z-index: 100000;
+                position: fixed;
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
+            #status #background{
+                width: 100%;
+                height: 100%;
+                display: block;
+                background-color: #666666;
+                text-align: center;
+                opacity: 0.8;
+            }
+            #status .text{
+                position: absolute;
+                top: calc(50% - 100px);
+                display: block;
+                width: 100%;
+                text-align: center;
+                background-color: #666666;
+                opacity: 0.5;
+                height: 200px;
+            }
+            #status h1{
+                font-family: sans-serif;
+                font-size: 40px;
+            }
+            input[type="password"],
+            input[type="number"]{
+                width: 50%;
+                position: absolute;
+                top: calc(50% - 20px);
+                left: 25%;
+                cursor: default;
+                opacity: 1;
+                margin: 0;
+                padding: 10px 20px;
+                overflow: visible;
+                -webkit-border-radius: 14px;
+                border-radius: 14px;
+                font: normal normal bold 16px/normal Arial Black, Gadget, sans-serif;
+                color: #22313f;
+                -o-text-overflow: clip;
+                text-overflow: clip;
+                border:5px solid #22313f;
+                -webkit-transition: all 200ms cubic-bezier(0.42, 0, 0.58, 1);
+                -moz-transition: all 200ms cubic-bezier(0.42, 0, 0.58, 1);
+                -o-transition: all 200ms cubic-bezier(0.42, 0, 0.58, 1);
+                transition: all 200ms cubic-bezier(0.42, 0, 0.58, 1);
+                -webkit-transform: none;
+                transform: none;
+                -webkit-transform-origin: 50% 50% 0;
+                transform-origin: 50% 50% 0;
+                font-size: 35px;
+                text-align: center;
+                background-color: #666666;
+            }
+            input[type="password"]:focus, textarea:focus{
+                top: calc(50% - 30px);
+                box-shadow: 0 0 5px 4px #666666;
+                border:5px solid rgba(34, 49, 63, 100);
+                font-size: 50px;
+                outline: none;
+                -webkit-focus-ring: none;
+                border: 1px solid #666666;
+                font-weight: bolder;
+                
+              }
+              input[type="number"]{
+                  position: relative;
+                  top: 0;
+                  left: 0;
+              }
+              #PID button{
+                  width: 20%;
+                cursor: default;
+                opacity: 1;
+                margin: 0;
+                padding: 10px 20px;
+                overflow: visible;
+                -webkit-border-radius: 14px;
+                border-radius: 14px;
+                font: normal normal bold 16px/normal Arial Black, Gadget, sans-serif;
+                color: #22313f;
+                -o-text-overflow: clip;
+                text-overflow: clip;
+                border:5px solid #22313f;
+                -webkit-transition: all 200ms cubic-bezier(0.42, 0, 0.58, 1);
+                -moz-transition: all 200ms cubic-bezier(0.42, 0, 0.58, 1);
+                -o-transition: all 200ms cubic-bezier(0.42, 0, 0.58, 1);
+                transition: all 200ms cubic-bezier(0.42, 0, 0.58, 1);
+                -webkit-transform: none;
+                transform: none;
+                -webkit-transform-origin: 50% 50% 0;
+                transform-origin: 50% 50% 0;
+                font-size: 35px;
+                text-align: center;
+                background-color: #666666;
+              }
+              ::-webkit-input-placeholder {
+                    color:    #22313f;
+                }
+                :-moz-placeholder {
+                    color:    #22313f;
+                }
+                ::-moz-placeholder {
+                    color:    #22313f;
+                }
+                :-ms-input-placeholder {
+                    color:    #22313f;
+                }
+                #PID{
+                    display: block;
+                    position: absolute;
+                    height: 10%;
+                    bottom: 0;  
+                    left: 25%;
+                    width:50%;
+                }
+                #PID input{
+                    width: 14%;
+                    float: left;
+                    margin-right: 3%;
+                    text-align: center;
+                    padding: 10px 0;
+                }
+                #PID button{
+                    width: 25%;
+                    text-align: center;
+                    padding: 10px 0;
+                }
+                
+                body {
+                    -webkit-user-select:none;
+                }
+                -webkit-inner-spin-button{
+                    color: #22313f;
+                }
+                #frame{
+                    border-radius: 200px;
+                    -webkit-border-radius: 200px;
+                    -moz-border-radius: 200px;
+                    top: calc(50% - 200px) !important;
+                    left: calc(50% - 200px) !important;
+                    z-index: 3 !important;
+                }
+                #rotate{
+                    opacity: 0.3 !important;
+                }
+                #background{
+                    z-index: 1 !important;
+                }
+                
+                @keyframes blink{
+                    0%{
+                        opacity: 0.0;
+                    }
+                    50%{
+                        opacity: 0.5;
+                    }
+                    100%{
+                        opacity: 1.0;
+                    }
+                }
+                @-webkit-keyframes blink{
+                    0%{
+                        opacity: 0.0;
+                    }
+                    50%{
+                        opacity: 0.5;
+                    }
+                    100%{
+                        opacity: 1.0;
+                    }
+                }
+                .allerts
+                {
+                    display: block;
+                    position: absolute;
+                    top: calc(50% - 300px);
+                    left: calc(50% - 300px);
+                    opacity: 0;
+                    transition: opacity 0.5s;
+                }
+                .allerts img{
+                    border-top-left-radius: 300px;
+                    border-top-right-radius: 300px;
+                    animation-name: blink;
+                    animation-duration: 0.3s;
+                    animation-timing-function: linear;
+                    animation-iteration-count: infinite;
+                }
+                #leftAlert{
+                    transform: rotate(-90deg);
+                }
+                #rightAlert{
+                    transform: rotate(90deg);
+                }
+                #bottomAlert{
+                    transform: rotate(180deg);
+                }
+        </style>
+    </head>
+    <body>
+        <div id="status">
+            <div id="background"></div>
+            <div class="text">
+            <h1>CONNECTING</h1>
+            <img src="img/loading.gif">
+            </div>
+        </div>
+        <div id="frontAlertdiv" class="allerts"><img src="img/alert.png" id="frontAlert" width="600"></div>
+        <div id="leftAlertdiv" class="allerts"><img src="img/alert.png" id="leftAlert" width="600"></div>
+        <div id="rightAlertdiv" class="allerts"><img src="img/alert.png" id="rightAlert" width="600"></div>
+        <div id="bottomAlertdiv" class="allerts"><img src="img/alert.png" id="bottomAlert" width="600"></div>
+        <div id="accelerometer">
+            <img src="img/background_accel.png" width="500" id="background">
+            <img id="rotate" src="img/rotate.png" width="500">
+            <img id="degrees" src="img/degrees.png" width="500">
+            <img id="frame" width="400" height="400">
+            <script>
+                $("#frame").attr("src", window.location.origin+':8081/?action=stream');
+            </script>
+            <img src="img/plane.png" width="500">
+        </div>
+        <div id="values">
+            <table><tr><td class="x"></td><td class="y"></td><td class="z"></td></tr></table>
+        </div>
+        <img src="img/header.png" id="header">
+        <div id="circle1">
+        <input type="text" value="0" id="engine1">
+        </div>
+        <div id="circle2">
+        <input type="text" value="0" id="engine2">
+        </div>
+        <div id="circle3">
+        <input type="text" value="0" id="engine3">
+        </div>
+        <div id="circle4">
+        <input type="text" value="0" id="engine4">
+        </div>
+        <div id="PID">
+            <input type="number" align="center" min="0" step="0.1" value="0" id="S_VALUE"><input type="number" align="center" min="0" step="0.1" value="0" id="P_VALUE">
+            <input type="number" align="center"min="0" step="0.01" value="0" id="I_VALUE"><input type="number" align="center" min="0" step="0.1" value="0" id="D_VALUE">
+            <button>SEND</button>
+        </div>
+
+<script>
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//SETTING UP ANIMATED EGNINES IN FRONTEND
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    $(function() {
+        $("#engine1").knob({
+            'min': 0,
+            'max': 179,
+            'angleArc': 220,
+            'angleOffset': 250,
+            'bgColor': '#19b5fe',
+            'inputColor': '#22313f',
+            'fgColor': '#22313f',
+            'lineCap': 'round',
+            'skin': 'tron',
+            readOnly: true
+        });
+        $("#engine2").knob({
+            'min': 0,
+            'max': 179,
+            'angleArc': 220,
+            'angleOffset': 250,
+            'bgColor': '#19b5fe',
+            'inputColor': '#22313f',
+            'fgColor': '#22313f',
+            'lineCap': 'round',
+            readOnly: true
+        });
+        $("#engine3").knob({
+            'min': 0,
+            'max': 179,
+            'angleArc': 220,
+            'angleOffset': 250,
+            'bgColor': '#19b5fe',
+            'inputColor': '#22313f',
+            'fgColor': '#22313f',
+            'lineCap': 'round',
+            readOnly: true
+        });
+        $("#engine4").knob({
+            'min': 0,
+            'max': 179,
+            'angleArc': 220,
+            'angleOffset': 250,
+            'bgColor': '#19b5fe',
+            'inputColor': '#22313f',
+            'fgColor': '#22313f',
+            'lineCap': 'round',
+            readOnly: true
+        });
+        $('#PID button').on('click', function(){
+            socket.send("PID;"+parseFloat($('#S_VALUE').val())*10+";"+parseFloat($('#P_VALUE').val())*100+";"+parseFloat($('#I_VALUE').val())*100+";"+parseFloat($('#D_VALUE').val())*100+";");
+            console.log("SENT PID");
+        });
+    });
+</script>
+        <script>
+            
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//ROTATION VALUES AND KEY EVENTS
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            var yaw, pitch, roll, throttle; //sended data to node.js server and then to arduino
+            yaw = pitch = roll = throttle = 0;
+            var zero = 0; 
+            var lefty = false;  //KeyEvent
+            var righty = false; //KeyEvent
+            var left = false;   //KeyEvent
+            var right = false;  //KeyEvent
+            var up = false;     //KeyEvent
+            var down = false;   //KeyEvent
+            var upz = false;    //KeyEvent
+            var downz = false;  //KeyEvent
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//ENGINE VALUES
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            var e1 = 0; //values for animated engines in fronted
+            var e2 = 0; //values for animated engines in fronted
+            var e3 = 0; //values for animated engines in fronted
+            var e4 = 0; //values for animated engines in fronted
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//SOCKET VALUES
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            var keyListener; //empty variable for keyHandler Interval
+            var connecting_status = "<h1>CONNECTING</h1><img src=\"img/loading.gif\">";
+            var login_status = "<input type=\"password\" id=\"passwd\" placeholder=\"Enter the password\">";
+            var busy_status = "<h1 style=\"font-size: 80px\">BUSY</h1>";
+            var socket; //Socket
+            var passwd;
+            var passhash;
+            var lostConn = false;
+            window.WebSocket = window.WebSocket || window.MozWebSocket;
+            function start(){
+                var processing = false;
+                socket = new WebSocket("ws://"+window.location.hostname+":8080", 'dumb-increment-protocol') ;
+                socket.onclose = function(){
+                    lostConn = true;
+                    clearInterval(keyListener);
+                    $('.text').html(connecting_status);
+                    $('#status').css({'z-index': 100000});
+                    $('#status').animate({'opacity': 1}, 500);
+                    setTimeout(function(){start();}, 500);
+                };
+                socket.onopen = function(){
+                if(!passwd){
+                    $('.text').animate({'height': '400px', 'opacity': 0, 'top':'calc(50% - 200px)'}, 500, function(){
+                        $('.text').html(login_status);
+                        passwdListener();
+                        $('.text').animate({'height': '200px', 'opacity': 0.5, 'top': 'calc(50% - 100px)'}, 500);
+                    });}
+                else if(lostConn){
+                    socket.send("verify;"+passwd.toString());
+                    lostConn = false;
+                }
+                };
+                socket.onmessage = function (message) {
+                if(processing) return;
+                processing = true;
+                var data = message.data.toString().split(';');
+                switch(data[0]){
+                    case "coordinate":
+                    {
+                    $('#rotate').css({'transform': 'rotate('+data[2]+'deg)'});
+                    $('#degrees').css({'top': 'calc(50% - 250px + ' + data[1]+'px)'});
+                    $('.x').text(data[4]);
+                    $('.y').text(data[5]);
+                    $('.z').text(data[6]);
+                    if(parseInt(data[7]) < 50){
+                        var opacity = 1.0 - parseInt(data[7])/50;
+                        $("#frontAlertdiv").css({'opacity': opacity.toString()});
+                    }
+                    else{
+                        $("#frontAlertdiv").css({'opacity': '0'});
+                    }
+                    if(parseInt(data[8]) < 50){
+                        var opacity = 1.0 - parseInt(data[8])/50;
+                        $("#leftAlertdiv").css({'opacity': opacity.toString()});
+                    }
+                    else{
+                        $("#leftAlertdiv").css({'opacity': '0'});
+                    }
+                    if(parseInt(data[9]) < 50){
+                        var opacity = 1.0 - parseInt(data[9])/50;
+                        $("#rightAlertdiv").css({'opacity': opacity.toString()});
+                    }
+                    else{
+                        $("#rightAlertdiv").css({'opacity': '0'});
+                    }
+                    if(parseInt(data[10]) < 50){
+                        var opacity = 1.0 - parseInt(data[10])/50;
+                        $("#bottomAlertdiv").css({'opacity': opacity.toString()});
+                    }
+                    else{
+                        $("#bottomAlertdiv").css({'opacity': '0'});
+                    }
+                    
+                    break;
+                    }
+                case "engines":
+                {
+                console.log(message.data);
+                throttle = parseInt(data[4]);
+                pitch = parseInt(data[2]);
+                roll = parseInt(data[1]);
+                yaw = parseInt(data[3]);
+                var te1 = throttle - pitch - roll + yaw;
+                var te2 = throttle - pitch + roll - yaw;
+                var te3 = throttle + pitch - roll - yaw;
+                var te4 = throttle + pitch + roll + yaw;
+                if(te1 > 0 && te2 > 0 && te3 > 0 && te4 > 0 && te1 < 179 && te2 < 179 && te3 < 179 && te4 < 179){
+                    e1 = te1;
+                    e2 = te2;
+                    e3 = te3;
+                    e4 = te4;
+                    $('#engine1').val(e1).trigger('change');
+                    $('#engine2').val(e2).trigger('change');
+                    $('#engine3').val(e3).trigger('change');
+                    $('#engine4').val(e4).trigger('change');
+            }
+                    break;
+                }
+                case "verify":
+                {
+                    var verify = parseInt(data[1]);
+                    console.log("received verify: "+verify.toString());
+                    if(verify == 0){
+                        $("#passwd").attr("placeholder", "Wrong password");
+                        $("#passwd").val("");
+                    }
+                    else if(verify == 1){
+                        passwd = passhash;
+                        $('#status').animate({'opacity': 0}, 500);
+                        $('#status').css({'z-index': -1});
+                        keyListener = setInterval(keyListenerHandler, 50);
+                    }
+                    else if(verify == 2){
+                        $('.text').animate({'height': '400px', 'opacity': 0, 'top':'calc(50% - 200px)'}, 500, function(){
+                        $('.text').html(busy_status);
+                        $('.text').animate({'height': '200px', 'opacity': 0.5, 'top': 'calc(50% - 100px)'}, 500);
+                    });
+                    }
+                    else if(verify == 3){
+                        $('.text').animate({'height': '400px', 'opacity': 0, 'top':'calc(50% - 200px)'}, 500, function(){
+                        $('.text').html(login_status);
+                        passwdListener();
+                        $('.text').animate({'height': '200px', 'opacity': 0.5, 'top': 'calc(50% - 100px)'}, 500);
+                    });
+                    }
+                }
+                }
+                processing = false;
+            };
+            }
+            start();
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//SOCKET EVENTS
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	    //socket.on('connect', function(){
+            //var myId;
+            //myId = socket.io.engine.id;
+            //console.log("MY ID = "+ myId);
+            //var permissions = 0; //0 - no permissions, 1 - spectator, 2 - controller
+            //socket.on('controller', function(data){
+            //    console.log("controller - "+data);
+            //    if(data == myId){
+            //        permissions = 2;
+            //        switch($('#status .text').text()){
+            //            case "WAITING ON PERMISSIONS":
+            //                $('#status .text').empty();
+            //                $('#status').css({'opacity': 0, 'z-index': -1});
+            //                break;
+            //            case "SPECTATOR MODE":
+            //                $('#status .text').empty();
+            //                $('#status').css({'opacity': 0, 'z-index': -1});
+            //                break;
+            //            default:
+            //                $('#status .text').empty();
+            //                $('#status').css({'opacity': 0, 'z-index': -1});
+            //                break;
+            //        }
+            //        clearInterval(keyListener);
+            //        keyListener = setInterval(keyListenerHandler, 50);
+            //    }
+            //    else{
+            //            permissions = 1;
+            //            $('#status .text').empty();
+            //            $('#status .text').html("<h1>SPECTATOR MODE</h1>");
+            //            if($('#status').css("opacity") == 0) clearInterval(keyListener);
+            //            $('#status').css({'opacity': 1, 'z-index': 100000});
+            //    }
+            //});
+            
+            function passwdListener(){
+                $('#passwd').keypress(function (e) {
+                console.log("pressed: "+e.which.toString());
+                if (e.which == 13) {
+                  passhash = CryptoJS.MD5($("#passwd").val());
+                  console.log(passhash.toString());
+                  socket.send("verify;"+passhash.toString());
+                  return false;
+            }
+            });
+            }
+            
+            //socket.on('coordinate', function(data){
+            //    var values = data.split(';');
+            //    $('#rotate').css({'transform': 'rotate('+values[1]+'deg)'});
+            //    $('#degrees').css({'top': 'calc(50% - 250px + ' + values[0]+'px)'});
+            //    $('.x').text(values[3]);
+            //    $('.y').text(values[4]);
+            //    $('.z').text(values[5]);
+            //});
+            //socket.on('offline', function(data){
+            //    console.log("OFFLINE - "+data);
+            //    if(data == false && ($('#status .text').text() != null || $('#status .text').text() == "OFFLINE")){
+            //        switch(permissions){
+            //            case 0:
+            //                $('#status .text').empty();
+            //                $('#status .text').html("<h1>WAITING ON PERMISSIONS</h1>");
+            //                break;
+            //            case 1:
+            //                $('#status .text').empty();
+            //                $('#status .text').html("<h1>SPECTATOR MODE</h1>");
+            //                break;
+            //            case 2:
+            //                $('#status .text').empty();
+            //                $('#status').css({'opacity': 0, 'z-index': -1});
+            //                clearInterval(keyListener);
+            //                keyListener = setInterval(keyListenerHandler, 50);
+            //                break;
+            //        }
+            //    }
+            //    else {
+            //        $('#status .text').empty();
+            //        $('#status .text').html("<h1>OFFLINE</h1>");
+            //        $('#status').css({'opacity': 1, 'z-index': 100000});
+            //        clearInterval(keyListener);
+            //    }
+            //});
+            //socket.on('engine data', function(data){
+            //    console.log(data);
+            //    values = data.split(';');
+            //    throttle = parseInt(values[3]);
+            //    pitch = parseInt(values[1]);
+            //    roll = parseInt(values[0]);
+            //    yaw = parseInt(values[2]);
+            //    $('#engine1').val(throttle - pitch - roll + yaw).trigger('change');
+            //    $('#engine2').val(throttle - pitch + roll - yaw).trigger('change');
+            //    $('#engine3').val(throttle + pitch - roll - yaw).trigger('change');
+            //    $('#engine4').val(throttle + pitch + roll + yaw).trigger('change');
+            //    e1 = throttle - pitch - roll + yaw;
+            //    e2 = throttle - pitch + roll - yaw;
+            //    e3 = throttle + pitch - roll - yaw;
+            //    e4 = throttle + pitch + roll + yaw;
+            //});
+            //});
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//WINDOW EVENTS
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            $(window).focus(function(){
+                downz = false;
+                upz = false;
+                left = false;
+                right = false;
+                down = false;
+                up = false;
+            });
+            $(window).blur(function(){
+                downz = false;
+                upz = false;
+                left = false;
+                right = false;
+                down = false;
+                up = false;
+            }
+            );
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//KEY EVENT FUNCTION
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            function keyListenerHandler(){
+                if(upz) throttle += 2; //if left shift is holded -> increase the throttle
+                if(downz && throttle-2>=0) throttle -= 2; //if left ctrl is holded -> decrease the throttle if it's bigger than zero
+                if(left){
+                    roll -= 1;
+                }
+                if(right){
+                    roll += 1;
+                }
+                if(up){
+                    pitch += 1;
+                }
+                if(down){
+                    pitch -= 1;
+                }
+                if(lefty) yaw += 1;
+                if(righty) yaw -= 1;
+                if(!left && !right && roll != 0) roll=0;
+                if(!up && !down && pitch != 0) pitch=0;
+                if(!lefty && !righty && yaw != 0) yaw = 0;
+                if(throttle - pitch - roll + yaw < 0){
+                    if(up) pitch -= 1;
+                    if(right) roll -= 1;
+                    if(righty) yaw += 1;
+                }
+                else if(throttle - pitch - roll + yaw > 179){
+                    if(down) pitch += 1;
+                    if(left) roll += 1;
+                    if(lefty) yaw -= 1;
+                }
+                e1 = throttle - pitch - roll + yaw;
+                if(throttle - pitch + roll - yaw < 0){
+                    if(up) pitch -= 1;
+                    if(left) roll += 1;
+                    if(lefty) yaw -= 1;
+                }
+                else if(throttle - pitch + roll - yaw > 179){
+                    if(down) pitch += 1;
+                    if(right) roll -= 1;
+                    if(righty) yaw += 1;
+                }
+                e2 = throttle - pitch + roll - yaw;
+                if(throttle + pitch - roll - yaw < 0){
+                    if(down) pitch += 1;
+                    if(right) roll -= 1;
+                    if(lefty) yaw -= 1;
+                }
+                else if(throttle + pitch - roll - yaw > 179){
+                    if(up) pitch -= 1;
+                    if(left) roll += 1;
+                    if(righty) yaw += 1;
+                }
+                e3 = throttle + pitch - roll - yaw;
+                if(throttle + pitch + roll + yaw < 0){
+                    if(down) pitch += 1;
+                    if(left) roll += 1;
+                    if(righty) yaw += 1;
+                }
+                else if(throttle + pitch + roll + yaw > 179){
+                    if(up) pitch -= 1;
+                    if(right) roll -= 1;
+                    if(lefty) yaw -= 1;
+                }
+                e4 = throttle + pitch + roll + yaw; 
+		        var changed = false;
+                if(e1 != $('#engine1').val()) {
+			changed = true;
+			$('#engine1').val(e1).trigger('change');
+		}
+                if(e2 != $('#engine2').val()) {
+			$('#engine2').val(e2).trigger('change');
+			changed = true;
+		}
+                if(e3 != $('#engine3').val()){
+			$('#engine3').val(e3).trigger('change');
+			changed = true;
+		}
+                if(e4 != $('#engine4').val()){
+			$('#engine4').val(e4).trigger('change');
+			changed = true;
+		}
+		if(changed) {
+            socket.send('engines;'+roll.toString()+";"+pitch.toString()+";"+yaw.toString()+";"+throttle.toString()+";");
+            console.log(roll.toString()+";"+pitch.toString()+";"+yaw.toString()+";"+throttle.toString());
+            }
+            }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//KEY EVENT VALUE CHANGER
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        $(document).keydown(function(e){ //called when some key is pushed down
+            switch(e.keyCode || e.which){
+                case 37: //left arrow button
+                    left = true;
+                    break;
+                case 38: //up arrow button
+                    up = true;
+                    break;
+                case 39: //right arrow button
+                    right = true;
+                    break;
+                case 40: //down arrow button
+                    down = true;
+                    break;
+                case 16: //left shift button
+                    upz = true;
+                    break;
+                case 17: //left ctrl button
+                    downz = true;
+                    break;
+                case 65: //A
+                    lefty = true;
+                    break;
+                case 68: //D
+                    righty = true;
+                    break;
+		case 32:
+		            e1 = e2 = e3 = e4 = throttle = 0;
+                    left = up = right = down = upz = downz = false;
+                    socket.send("engines;0;0;0;0;");
+                    socket.send("engines;0;0;0;0;");
+                    socket.send("engines;0;0;0;0;");
+		    break;
+    }
+    });
+    $(document).keyup(function(e){ //called when some key is pushed up
+        switch(e.keyCode || e.which){
+            case 37: //left arrow button
+                    left = false;
+                    break;
+                case 38: //up arrow button
+                    up = false;
+                    break;
+                case 39: //right arrow button
+                    right = false;
+                    break;
+                case 40: //down arrow button
+                    down = false;
+                    break;
+                case 16: //left shift button
+                    upz = false;
+                    break;
+                case 17: //left ctrl button
+                    downz = false;
+                    break;
+                case 65: //A
+                    lefty = false;
+                    break;
+                case 68: //D
+                    righty = false;
+                    break;
+                    
+        }  
+    }
+    );
+        </script>
+    </body>
+</html>
+
